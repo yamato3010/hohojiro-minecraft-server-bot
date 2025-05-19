@@ -3,6 +3,7 @@ import discord
 from discord.ext import commands
 from azure.identity import ClientSecretCredential
 from azure.mgmt.compute import ComputeManagementClient
+from keep_alive import keep_alive
 import logging
 
 # ロギングの設定
@@ -237,6 +238,7 @@ if __name__ == '__main__':
         if not all([AZURE_TENANT_ID, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, AZURE_SUBSCRIPTION_ID]):
             logger.warning("一部のAzure環境変数が設定されていないため、VM操作機能が制限される可能性があります。")
             
+        keep_alive()
         bot.run(DISCORD_TOKEN)
     except Exception as e:
         logger.error(f"ボット実行中にエラー発生: {str(e)}")
