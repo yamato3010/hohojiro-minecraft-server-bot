@@ -1,4 +1,5 @@
 discord.py==2.1.1
 Flask==2.3.3
-azure-identity
-azure-mgmt-compute
+azure-identity==1.23.0
+azure-mgmt-compute==34.1.0
+azure-mgmt-network==28.1.0
