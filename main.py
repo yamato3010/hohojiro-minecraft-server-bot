@@ -3,6 +3,7 @@ import discord
 from discord.ext import commands
 from azure.identity import ClientSecretCredential
 from azure.mgmt.compute import ComputeManagementClient
+from azure.mgmt.network import NetworkManagementClient
 from keep_alive import keep_alive
 import logging
 
@@ -131,8 +132,28 @@ async def vm_start(ctx, resource_group: str = None, vm_name: str = None):
             vm_name=vm_name
         )
         async_vm_start.wait()
+
+        # 起動後にパブリックIPを取得
+        network_client = NetworkManagementClient(credential, AZURE_SUBSCRIPTION_ID)
+        nic_id = compute_client.virtual_machines.get(
+            resource_group_name=resource_group,
+            vm_name=vm_name
+        ).network_profile.network_interfaces[0].id
         
-        await ctx.send(f"✅{vm_name} の起動が完了しました！")
+        nic_name = nic_id.split('/')[-1]
+        nic_resource_group = nic_id.split('/')[4]
+        public_ip_id = network_client.network_interfaces.get(
+            resource_group_name=nic_resource_group,
+            network_interface_name=nic_name
+        ).ip_configurations[0].public_ip_address.id
+        
+        public_ip_name = public_ip_id.split('/')[-1]
+        public_ip = network_client.public_ip_addresses.get(
+            resource_group_name=nic_resource_group,
+            public_ip_address_name=public_ip_name
+        ).ip_address
+        
+        await ctx.send(f"✅{vm_name} の起動が完了しました！\nサーバーアドレス: `{public_ip}`")
     except Exception as e:
         await ctx.send(f"❌VMの起動中にエラーが発生しました: {str(e)}")
 
